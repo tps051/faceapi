@@ -79,55 +79,8 @@ namespace FaceTry2
                 Console.WriteLine($"Neutral:                   \t{item.scores.neutral}");
                 Console.WriteLine($"Sadness:                   \t{item.scores.sadness}");
                 Console.WriteLine($"Surprise:                  \t{item.scores.surprise}");
-                //  Console.WriteLine($"The most bright emotion is:\t{MaxEmotion(item.scores)}");
                 Console.WriteLine("_____________________________________________________");
             }
-        }
-        static string MaxEmotion(Scores score)
-        {
-            string result = "";
-            double max = 0;
-            if (score.anger > max)
-            {
-                result = "anger";
-                max = score.anger;
-            }
-            if (score.contempt > max)
-            {
-                result = "contempt";
-                max = score.contempt;
-            }
-            if (score.disgust > max)
-            {
-                result = "disgust";
-                max = score.disgust;
-            }
-            if (score.fear > max)
-            {
-                result = "fear";
-                max = score.fear;
-            }
-            if (score.happiness > max)
-            {
-                result = "happines";
-                max = score.happiness;
-            }
-            if (score.neutral > max)
-            {
-                result = "neutral";
-                max = score.neutral;
-            }
-            if (score.sadness > max)
-            {
-                result = "sadness";
-                max = score.sadness;
-            }
-            if (score.surprise > max)
-            {
-                result = "surprise";
-                max = score.surprise;
-            }
-            return result;
         }
     }
 }
