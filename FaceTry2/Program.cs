@@ -1,42 +1,54 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 
-namespace CSHttpClientSample
+namespace FaceTry2
 {
     static class Program
     {
-        // **********************************************
-        // *** Update or verify the following values. ***
-        // **********************************************
 
-        // Replace the subscriptionKey string value with your valid subscription key.
         const string subscriptionKey = "8f966ebea21f4261ae60d8c57382f157";
-
-       
         const string uriBase = "https://westcentralus.api.cognitive.microsoft.com/face/v1.0";
-        private static string result = "";
 
-        static void Main()
+        private static List<string> imagePaths = new List<string>
+        {
+            @"C:\Photo\1.jpg",
+            @"C:\Photo\2.jpg",
+            @"C:\Photo\3.jpg",
+            @"C:\Photo\4.jpg",
+            @"C:\Photo\5.jpg",
+            @"C:\Photo\6.jpg"
+        };
+
+        private static string result = "";
+        private static int photo = 0;
+
+        static void Main(string[] args)
         {
             Console.WriteLine("Detect faces:");
-            Console.Write("Enter the path to an image with faces that you wish to analyze: ");
-            string imageFilePath = "C:\\Photo\\3.jpg";
+            Console.WriteLine($"There are {imagePaths.Count} photo's links in list. Please, choose one: ");
+            photo = Int32.Parse(Console.ReadLine()) - 1;
+            // Console.Write("Enter the path to an image with faces that you wish to analyze: ");
+            //    string imageFilePath = "C:\\Photo\\3.jpg";
 
-            MakeAnalysisRequest(imageFilePath);
-
-            Console.WriteLine("\nPlease wait a moment for the results to appear. Then, press Enter to exit...\n");
-            Console.ReadLine();
+            MakeAnalysisRequest();
+            Console.ReadKey();
         }
 
+        static byte[] GetImage(string path)
+        {
+            FileStream file = new FileStream(path, FileMode.Open, FileAccess.Read);
+            BinaryReader bin = new BinaryReader(file);
+            return bin.ReadBytes((int)file.Length);
+        }
 
-        /// <summary>
-        /// Gets the analysis of the specified image file by using the Computer Vision REST API.
-        /// </summary>
-        /// <param name="imageFilePath">The image file.</param>
-        static async void MakeAnalysisRequest(string imageFilePath)
+        static async void MakeAnalysisRequest()
         {
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", subscriptionKey);
@@ -44,122 +56,130 @@ namespace CSHttpClientSample
             string uri = uriBase + "?" + requestParameters;
 
             HttpResponseMessage response;
-            byte[] byteData = GetImageAsByteArray(imageFilePath);
+            byte[] byteData = GetImage(imagePaths[photo]);
 
             using (ByteArrayContent content = new ByteArrayContent(byteData))
             {
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
                 response = await client.PostAsync(uri, content);
                 result = await response.Content.ReadAsStringAsync();
-                //string contentString = await response.Content.ReadAsStringAsync();
-
-                // Display the JSON response.
                 Console.WriteLine("\nResponse:\n");
+                //   Console.WriteLine(JsonPrettyPrint(result));
             }
-                List<FaceObject> lst = new List<FaceObject>();
-                try
-                {
-                    lst = JsonConvert.DeserializeObject<List<FaceObject>>(result);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-                foreach (var item in lst)
-                {
-                    Console.WriteLine($"Face:                      \t{lst.IndexOf(item) + 1}");
-                    Console.WriteLine($"Anger:                     \t{item.scores.anger}");
-                    Console.WriteLine($"Contempt:                  \t{item.scores.contempt}");
-                    Console.WriteLine($"Disgust:                   \t{item.scores.disgust}");
-                    Console.WriteLine($"Fear:                      \t{item.scores.fear}");
-                    Console.WriteLine($"Happiness:                 \t{item.scores.happiness}");
-                    Console.WriteLine($"Neutral:                   \t{item.scores.neutral}");
-                    Console.WriteLine($"Sadness:                   \t{item.scores.sadness}");
-                    Console.WriteLine($"Surprise:                  \t{item.scores.surprise}");
-                    Console.WriteLine($"The most bright emotion is:\t{MaxEmotion(item.scores)}");
-                    Console.WriteLine("_____________________________________________________");
-                }
-           }
-
-            // Console.WriteLine(JsonPrettyPrint(result));
+            List<FaceObject> json = new List<FaceObject>();
+            json = JsonConvert.DeserializeObject<List<FaceObject>>(result);
+            foreach (var item in json)
+            {
+                Console.WriteLine($"Face:                      \t{json.IndexOf(item) + 1}");
+                Console.WriteLine($"Anger:                     \t{item.scores.anger}");
+                Console.WriteLine($"Contempt:                  \t{item.scores.contempt}");
+                Console.WriteLine($"Disgust:                   \t{item.scores.disgust}");
+                Console.WriteLine($"Fear:                      \t{item.scores.fear}");
+                Console.WriteLine($"Happiness:                 \t{item.scores.happiness}");
+                Console.WriteLine($"Neutral:                   \t{item.scores.neutral}");
+                Console.WriteLine($"Sadness:                   \t{item.scores.sadness}");
+                Console.WriteLine($"Surprise:                  \t{item.scores.surprise}");
+                //  Console.WriteLine($"The most bright emotion is:\t{MaxEmotion(item.scores)}");
+                Console.WriteLine("_____________________________________________________");
+            }
         }
-    }
-
-
-        /// <summary>
-        /// Returns the contents of the specified file as a byte array.
-        /// </summary>
-        /// <param name="imageFilePath">The image file to read.</param>
-        /// <returns>The byte array of the image data.</returns>
-        static byte[] GetImageAsByteArray(string imageFilePath)
+        static string MaxEmotion(Scores score)
         {
-            FileStream fileStream = new FileStream(imageFilePath, FileMode.Open, FileAccess.Read);
-            BinaryReader binaryReader = new BinaryReader(fileStream);
-            return binaryReader.ReadBytes((int)fileStream.Length);
-        }
-
-
-
-static string JsonPrettyPrint(string json)
-{
-    if (string.IsNullOrEmpty(json))
-        return string.Empty;
-
-    json = json.Replace(Environment.NewLine, "").Replace("\t", "");
-
-    StringBuilder sb = new StringBuilder();
-    bool quote = false;
-    bool ignore = false;
-    int offset = 0;
-    int indentLength = 3;
-
-    //    foreach (char ch in json)
-    //    {
-    //        switch (ch)
-    //        {
-    //            case '"':
-    //                if (!ignore) quote = !quote;
-    //                break;
-    //            case '\'':
-    //                if (quote) ignore = !ignore;
-    //                break;
-    //        }
-
-    //        if (quote)
-    //            sb.Append(ch);
-    //        else
-    //        {
-    //            switch (ch)
-    //            {
-    //                case '{':
-    //                case '[':
-    //                    sb.Append(ch);
-    //                    sb.Append(Environment.NewLine);
-    //                    sb.Append(new string(' ', ++offset * indentLength));
-    //                    break;
-    //                case '}':
-    //                case ']':
-    //                    sb.Append(Environment.NewLine);
-    //                    sb.Append(new string(' ', --offset * indentLength));
-    //                    sb.Append(ch);
-    //                    break;
-    //                case ',':
-    //                    sb.Append(ch);
-    //                    sb.Append(Environment.NewLine);
-    //                    sb.Append(new string(' ', offset * indentLength));
-    //                    break;
-    //                case ':':
-    //                    sb.Append(ch);
-    //                    sb.Append(' ');
-    //                    break;
-    //                default:
-    //                    if (ch != ' ') sb.Append(ch);
-    //                    break;
-    //            }
-    //        }
-    //    }
-
-    return sb.ToString().Trim();
+            string result = "";
+            double max = 0;
+            if (score.anger > max)
+            {
+                result = "anger";
+                max = score.anger;
+            }
+            if (score.contempt > max)
+            {
+                result = "contempt";
+                max = score.contempt;
+            }
+            if (score.disgust > max)
+            {
+                result = "disgust";
+                max = score.disgust;
+            }
+            if (score.fear > max)
+            {
+                result = "fear";
+                max = score.fear;
+            }
+            if (score.happiness > max)
+            {
+                result = "happines";
+                max = score.happiness;
+            }
+            if (score.neutral > max)
+            {
+                result = "neutral";
+                max = score.neutral;
+            }
+            if (score.sadness > max)
+            {
+                result = "sadness";
+                max = score.sadness;
+            }
+            if (score.surprise > max)
+            {
+                result = "surprise";
+                max = score.surprise;
+            }
+            return result;
         }
     }
 }
+
+
+        //foreach (char ch in json)
+        //{
+
+        //switch (ch)
+        //{
+        //    case '"':
+        //        if (!ignore) quote = !quote;
+        //        break;
+        //    case '\'':
+        //        if (quote) ignore = !ignore;
+        //        break;
+        //}
+
+        //if (quote)
+        //    sb.Append(ch);
+        //else
+        //{
+        //    switch (ch)
+        //    {
+        //        case '{':
+        //        case '[':
+        //            sb.Append(ch);
+        //            sb.Append(Environment.NewLine);
+        //            sb.Append(new string(' ', ++offset * indentLength));
+        //            break;
+        //        case '}':
+        //        case ']':
+        //            sb.Append(Environment.NewLine);
+        //            sb.Append(new string(' ', --offset * indentLength));
+        //            sb.Append(ch);
+        //            break;
+        //        case ',':
+        //            sb.Append(ch);
+        //            sb.Append(Environment.NewLine);
+        //            sb.Append(new string(' ', offset * indentLength));
+        //            break;
+        //        case ':':
+        //            sb.Append(ch);
+        //            sb.Append(' ');
+        //            break;
+        //        default:
+        //            if (ch != ' ') sb.Append(ch);
+        //            break;
+        //    }
+        //}
+        // }
+
+        // return sb.ToString().Trim();
+   //  }
+//}
