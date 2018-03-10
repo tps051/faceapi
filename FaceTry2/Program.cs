@@ -61,117 +61,104 @@ namespace FaceTry2
             using (var content = new ByteArrayContent(data))
             {
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                try
-                {
-                    response = await client.PostAsync(uri, content);
-                    result = await response.Content.ReadAsStringAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                }
-               Console.WriteLine("\nResponse:\n");
+                response = await client.PostAsync(uri, content);
+                result = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("\nResponse:\n");
                 Console.WriteLine(JsonPrettyPrint(result));
             }
         }
+        //  List<FaceObject> lst = new List<FaceObject>();
+        // lst = JsonConvert.DeserializeObject<List<FaceObject>>(result);
+        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //            foreach (var item in lst)                                                                                                        //
+        //            {                                                                                                                               // 
+        //                Console.WriteLine($"Face:                      \t{lst.IndexOf(item) + 1}");                                                //
+        //                Console.WriteLine($"Anger:                     \t{item.faceAttributes.Emotion.anger}");                                   //
+        //                Console.WriteLine($"Contempt:                  \t{item.faceAttributes.Emotion.contempt}");                               //
+        //                Console.WriteLine($"Disgust:                   \t{item.faceAttributes.Emotion.disgust}");                               //
+        //                Console.WriteLine($"Fear:                      \t{item.faceAttributes.Emotion.fear}");                                 //
+        //                Console.WriteLine($"Happiness:                 \t{item.faceAttributes.Emotion.happiness}");                           //
+        //                Console.WriteLine($"Neutral:                   \t{item.faceAttributes.Emotion.neutral}");                            //
+        //                Console.WriteLine($"Sadness:                   \t{item.faceAttributes.Emotion.sadness}");                           //
+        //                Console.WriteLine($"Surprise:                  \t{item.faceAttributes.Emotion.surprise}");                         //
+        //                // Console.WriteLine($"The most bright emotion is:\t{MaxEmotion(item.scores)}");                                  //
+        //                Console.WriteLine("_____________________________________________________");                                      //
+        //            }
+        //        }
+        //    }
+        //}
 
+        //////////////////////////////////////////U C X O D H U K////////////////////////////////////////////////
+        /// < summary >
+        /// Formats the given JSON string by adding line breaks and indents.
+        /// </ summary >
+        /// < param name = "json" > The raw JSON string to format.</ param >
 
-            //////////////////////////////////////////U C X O D H U K////////////////////////////////////////////////
-            /// < summary >
-            /// Formats the given JSON string by adding line breaks and indents.
-            /// </ summary >
-            /// < param name = "json" > The raw JSON string to format.</ param >
-     
-            //     / < returns > The formatted JSON string.</ returns >
+        //     / < returns > The formatted JSON string.</ returns >
+
         static string JsonPrettyPrint(string json)
         {
-                if (string.IsNullOrEmpty(json))
-                    return string.Empty;
+            if (string.IsNullOrEmpty(json))
+                return string.Empty;
 
-                json = json.Replace(Environment.NewLine, "").Replace("\t", "");
+            json = json.Replace(Environment.NewLine, "").Replace("\t", "");
 
-                StringBuilder sb = new StringBuilder();
-                bool quote = false;
-                bool ignore = false;
-                int offset = 0;
-                int indentLength = 3;
+            StringBuilder sb = new StringBuilder();
+            bool quote = false;
+            bool ignore = false;
+            int offset = 0;
+            int indentLength = 3;
 
-                foreach (char ch in json)
+            foreach (char ch in json)
+            {
+
+                switch (ch)
+                {
+                    case '"':
+                        if (!ignore) quote = !quote;
+                        break;
+                    case '\'':
+                        if (quote) ignore = !ignore;
+                        break;
+                }
+
+                if (quote)
+                    sb.Append(ch);
+                else
                 {
                     switch (ch)
                     {
-                        case '"':
-                            if (!ignore) quote = !quote;
+                        case '{':
+                        case '[':
+                            sb.Append(ch);
+                            sb.Append(Environment.NewLine);
+                            sb.Append(new string(' ', ++offset * indentLength));
                             break;
-                        case '\'':
-                            if (quote) ignore = !ignore;
+                        case '}':
+                        case ']':
+                            sb.Append(Environment.NewLine);
+                            sb.Append(new string(' ', --offset * indentLength));
+                            sb.Append(ch);
                             break;
-                    }
-
-                    if (quote)
-                        sb.Append(ch);
-                    else
-                    {
-                        switch (ch)
-                        {
-                            case '{':
-                            case '[':
-                                sb.Append(ch);
-                                sb.Append(Environment.NewLine);
-                                sb.Append(new string(' ', ++offset * indentLength));
-                                break;
-                            case '}':
-                            case ']':
-                                sb.Append(Environment.NewLine);
-                                sb.Append(new string(' ', --offset * indentLength));
-                                sb.Append(ch);
-                                break;
-                            case ',':
-                                sb.Append(ch);
-                                sb.Append(Environment.NewLine);
-                                sb.Append(new string(' ', offset * indentLength));
-                                break;
-                            case ':':
-                                sb.Append(ch);
-                                sb.Append(' ');
-                                break;
-                            default:
-                                if (ch != ' ') sb.Append(ch);
-                                break;
-                        }
+                        case ',':
+                            sb.Append(ch);
+                            sb.Append(Environment.NewLine);
+                            sb.Append(new string(' ', offset * indentLength));
+                            break;
+                        case ':':
+                            sb.Append(ch);
+                            sb.Append(' ');
+                            break;
+                        default:
+                            if (ch != ' ') sb.Append(ch);
+                            break;
                     }
                 }
-
-                return sb.ToString().Trim();
             }
+
+            return sb.ToString().Trim();
         }
     }
+}
 
-
-
-//            List<FaceObject> lst = new List<FaceObject>();
-//            try
-//            {
-//                lst = JsonConvert.DeserializeObject<List<FaceObject>>(result);
-//            }
-//            catch (Exception ex)
-//            {
-//                Console.WriteLine(ex);
-//            }
-//            foreach (var item in lst)
-//            {
-//                Console.WriteLine($"Face:                      \t{lst.IndexOf(item) + 1}");
-//                Console.WriteLine($"Anger:                     \t{item.scores.anger}");
-//                Console.WriteLine($"Contempt:                  \t{item.scores.contempt}");
-//                Console.WriteLine($"Disgust:                   \t{item.scores.disgust}");
-//                Console.WriteLine($"Fear:                      \t{item.scores.fear}");
-//                Console.WriteLine($"Happiness:                 \t{item.scores.happiness}");
-//                Console.WriteLine($"Neutral:                   \t{item.scores.neutral}");
-//                Console.WriteLine($"Sadness:                   \t{item.scores.sadness}");
-//                Console.WriteLine($"Surprise:                  \t{item.scores.surprise}");
-//                Console.WriteLine("_____________________________________________________");
-//            }
-//        }
-//    }
-//}
 

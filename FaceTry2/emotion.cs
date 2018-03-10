@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FaceTry2
 {
-    class Scores
+    class emotion
     {
         public double anger { get; set; }
         public double contempt { get; set; }
@@ -16,6 +16,5 @@ namespace FaceTry2
         public double neutral { get; set; }
         public double sadness { get; set; }
         public double surprise { get; set; }
-
     }
 }

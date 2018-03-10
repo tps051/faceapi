@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace FaceTry2
 {
-    class FaceObject
+    class faceAttributes
     {
-        public FaceRectangle faceRectangle { get; set; }
-        public faceAttributes faceAttributes { get; set; }
+        public emotion Emotion { get; set; }
     }
 }
