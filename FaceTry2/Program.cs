@@ -56,83 +56,122 @@ namespace FaceTry2
             string uri = uriBase + "?" + requestParameters;
 
             HttpResponseMessage response;
-            byte[] byteData = GetImage(imagePaths[photo]);
+            byte[] data = GetImage(imagePaths[photo]);
 
-            using (ByteArrayContent content = new ByteArrayContent(byteData))
+            using (var content = new ByteArrayContent(data))
             {
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-                response = await client.PostAsync(uri, content);
-                result = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("\nResponse:\n");
-                //   Console.WriteLine(JsonPrettyPrint(result));
+                try
+                {
+                    response = await client.PostAsync(uri, content);
+                    result = await response.Content.ReadAsStringAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+               Console.WriteLine("\nResponse:\n");
+                Console.WriteLine(JsonPrettyPrint(result));
             }
-            List<FaceObject> json = new List<FaceObject>();
-            json = JsonConvert.DeserializeObject<List<FaceObject>>(result);
-            foreach (var item in json)
-            {
-                Console.WriteLine($"Face:                      \t{json.IndexOf(item) + 1}");
-                Console.WriteLine($"Anger:                     \t{item.scores.anger}");
-                Console.WriteLine($"Contempt:                  \t{item.scores.contempt}");
-                Console.WriteLine($"Disgust:                   \t{item.scores.disgust}");
-                Console.WriteLine($"Fear:                      \t{item.scores.fear}");
-                Console.WriteLine($"Happiness:                 \t{item.scores.happiness}");
-                Console.WriteLine($"Neutral:                   \t{item.scores.neutral}");
-                Console.WriteLine($"Sadness:                   \t{item.scores.sadness}");
-                Console.WriteLine($"Surprise:                  \t{item.scores.surprise}");
-                Console.WriteLine("_____________________________________________________");
+        }
+
+
+            //////////////////////////////////////////U C X O D H U K////////////////////////////////////////////////
+            /// < summary >
+            /// Formats the given JSON string by adding line breaks and indents.
+            /// </ summary >
+            /// < param name = "json" > The raw JSON string to format.</ param >
+     
+            //     / < returns > The formatted JSON string.</ returns >
+        static string JsonPrettyPrint(string json)
+        {
+                if (string.IsNullOrEmpty(json))
+                    return string.Empty;
+
+                json = json.Replace(Environment.NewLine, "").Replace("\t", "");
+
+                StringBuilder sb = new StringBuilder();
+                bool quote = false;
+                bool ignore = false;
+                int offset = 0;
+                int indentLength = 3;
+
+                foreach (char ch in json)
+                {
+                    switch (ch)
+                    {
+                        case '"':
+                            if (!ignore) quote = !quote;
+                            break;
+                        case '\'':
+                            if (quote) ignore = !ignore;
+                            break;
+                    }
+
+                    if (quote)
+                        sb.Append(ch);
+                    else
+                    {
+                        switch (ch)
+                        {
+                            case '{':
+                            case '[':
+                                sb.Append(ch);
+                                sb.Append(Environment.NewLine);
+                                sb.Append(new string(' ', ++offset * indentLength));
+                                break;
+                            case '}':
+                            case ']':
+                                sb.Append(Environment.NewLine);
+                                sb.Append(new string(' ', --offset * indentLength));
+                                sb.Append(ch);
+                                break;
+                            case ',':
+                                sb.Append(ch);
+                                sb.Append(Environment.NewLine);
+                                sb.Append(new string(' ', offset * indentLength));
+                                break;
+                            case ':':
+                                sb.Append(ch);
+                                sb.Append(' ');
+                                break;
+                            default:
+                                if (ch != ' ') sb.Append(ch);
+                                break;
+                        }
+                    }
+                }
+
+                return sb.ToString().Trim();
             }
         }
     }
-}
 
 
-        //foreach (char ch in json)
-        //{
 
-        //switch (ch)
-        //{
-        //    case '"':
-        //        if (!ignore) quote = !quote;
-        //        break;
-        //    case '\'':
-        //        if (quote) ignore = !ignore;
-        //        break;
-        //}
-
-        //if (quote)
-        //    sb.Append(ch);
-        //else
-        //{
-        //    switch (ch)
-        //    {
-        //        case '{':
-        //        case '[':
-        //            sb.Append(ch);
-        //            sb.Append(Environment.NewLine);
-        //            sb.Append(new string(' ', ++offset * indentLength));
-        //            break;
-        //        case '}':
-        //        case ']':
-        //            sb.Append(Environment.NewLine);
-        //            sb.Append(new string(' ', --offset * indentLength));
-        //            sb.Append(ch);
-        //            break;
-        //        case ',':
-        //            sb.Append(ch);
-        //            sb.Append(Environment.NewLine);
-        //            sb.Append(new string(' ', offset * indentLength));
-        //            break;
-        //        case ':':
-        //            sb.Append(ch);
-        //            sb.Append(' ');
-        //            break;
-        //        default:
-        //            if (ch != ' ') sb.Append(ch);
-        //            break;
-        //    }
-        //}
-        // }
-
-        // return sb.ToString().Trim();
-   //  }
+//            List<FaceObject> lst = new List<FaceObject>();
+//            try
+//            {
+//                lst = JsonConvert.DeserializeObject<List<FaceObject>>(result);
+//            }
+//            catch (Exception ex)
+//            {
+//                Console.WriteLine(ex);
+//            }
+//            foreach (var item in lst)
+//            {
+//                Console.WriteLine($"Face:                      \t{lst.IndexOf(item) + 1}");
+//                Console.WriteLine($"Anger:                     \t{item.scores.anger}");
+//                Console.WriteLine($"Contempt:                  \t{item.scores.contempt}");
+//                Console.WriteLine($"Disgust:                   \t{item.scores.disgust}");
+//                Console.WriteLine($"Fear:                      \t{item.scores.fear}");
+//                Console.WriteLine($"Happiness:                 \t{item.scores.happiness}");
+//                Console.WriteLine($"Neutral:                   \t{item.scores.neutral}");
+//                Console.WriteLine($"Sadness:                   \t{item.scores.sadness}");
+//                Console.WriteLine($"Surprise:                  \t{item.scores.surprise}");
+//                Console.WriteLine("_____________________________________________________");
+//            }
+//        }
+//    }
 //}
+
